@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grand Slam Talk</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <link rel="stylesheet" href="static/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+    <style>
+        body {
+            font-family: Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #ffffff; /* White background */
+            color: #1c1c1c; /* Dark text for readability */
+        }
+    
+        header {
+            background-color: darkblue;
+            color: #ffffff; /* White text */
+            padding: 1rem;
+            text-align: center;
+        }
+
+        #statusMessages {
+            color: #ffffff; /* white */
+            margin-top: 10px;
+        }
+        #grandSlamTalkTitle {
+            color: #ab3d53
+        }
+    
+        .container {
+            display: flex;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+        }
+    
+        .game-list { 
+            flex: 0.2; /* 30% width */
+            padding: 1rem;
+            overflow-y: auto;
+            border-right: 1px solid #d6d6d6;
+            background-color: #f8f9fa; /* Light gray for subtle contrast */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-details { /* Reduced padding */
+            flex: 0.6; /* 40% width */
+            padding: 1rem;
+            overflow-y: auto;            
+            background-color: #f8f9fa; /* Light gray for subtle contrast */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    
+        .commentary-options {
+            flex: 0.2;
+            padding: 1rem;
+            overflow-y: auto;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-left: 1px solid #d6d6d6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #ba0c2f; /* MLB Red */
+        }
+    
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #002d62; /* MLB Blue */
+        }
+    
+        select,
+        button {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #d6d6d6;
+            border-radius: 4px;
+            font-size: 1rem;
+            width: 100%;
+        }
+    
+        button {
+            background-color: #ba0c2f; /* MLB Red */
+            color: #ffffff; /* White text */
+            cursor: pointer;
+        }
+    
+        button:disabled {
+            background-color: #d6d6d6;
+            cursor: not-allowed;
+        }
+    
+        button:hover:not(:disabled) {
+            background-color: #a00e28; /* Darker MLB Red */
+        }
+    
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+    
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+    
+        nav a {
+            color: #002d62; /* MLB Blue */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        nav a { /* Allow game names to wrap */
+            word-break: break-word; 
+        }
+    
+        nav a:hover {
+            text-decoration: underline;
+        }
+    
+        .hidden {
+            display: none !important;
+        }
+    
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+    
+            .commentary-options {
+                max-width: 100%;
+                flex: none;
+            }
+    
+            .game-list,
+            .game-details {
+                border-right: none;
+            }
+        }
+
+        .linescore-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .linescore-header,
+        .linescore-team {
+            display: grid;
+            grid-template-columns: 3fr repeat(10, 1fr); /* Adjust the first column width */
+            text-align: center;
+            font-weight: bold;
+            background-color: #f4f4f4;
+        }
+
+        .team-column {
+            text-align: left; /* Align team names to the left */
+            padding-left: 10px; /* Add some padding for better spacing */
+        }
+
+        .linescore-team {
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+        }
+
+        .linescore-team:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .linescore-header > div,
+        .linescore-team > div {
+            padding: 10px;
+            border-right: 1px solid #ccc;
+        }
+
+        .linescore-header > div:last-child,
+        .linescore-team > div:last-child {
+            border-right: none;
+        }
+
+        .linescore-header {
+            background-color: #d8d8d8;
+            color: #333;
+        }
+
+
+    </style>
+    <style>
+        .flex-container {
+          display: flex;
+        }
+        .game-details{
+            width: 66.66%; /* Occupy 2/3 of the container width */
+        }
+        .imageAndDescription {
+          width: 33.33%; /* Occupy 1/3 of the container width */
+        }
+      </style>
+    
+</head>
+<body>
+    <header>
+        <h1 id="grandSlamTalkTitle">Grand Slam Talk</h1>
+        <div id="statusMessages"></div>
+    </header>
+
+    <div class="container">
+        <div class="game-list">
+            <h1>Select a Game</h1>
+            <nav>
+                <ul>
+                    {% for date in games %}
+                        <h2>{{ date['date'] }}</h2>
+                        <ul>
+                            {% for game in date['games'] %}
+                                <li>
+                                    <a href="#" data-game-pk="{{ game['gamePk'] }}">
+                                        {{ game['teams']['away']['team']['name'] }} vs. {{ game['teams']['home']['team']['name'] }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+
+        <div class="game-details" data-game-pk="">
+            <h1>Game Details</h1>
+            <p>Select a game to view details here.</p>
+        </div>
+
+        <div class="commentary-options">
+            <h1>Commentary Options</h1>
+            
+            <h2>Choose Commentary Style</h2>
+            <select id="commentary-style-select">
+                <option value="concise">Concise</option>
+                <option value="detailed">Detailed</option>
+                <option value="insightful">Insightful</option>
+            </select>
+
+            <h2>Choose Language</h2>
+            <select id="language-select">
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Korean">Korean</option>
+                <option value="French">French</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Mandarin">Mandarin</option>
+                <option value="Tagalog">Tagalog</option>
+            </select>
+            <button id="generateCommentaryButton" data-game-pk="">Generate Commentary</button>
+            
+            <h1>Speech Options</h1>
+            <div class="voice-selection">
+                <h2>Choose Voice Accent</h2>
+                <select id="voiceDropdown" name="voice">
+                  <option value="en-US">English (US)</option>
+                  <option value="es-ES">Spanish (Spain)</option>
+                  <option value="es-US">Spanish (US)</option>
+                  <option value="ja-JP">Japanese</option>
+                  <option value="ko-KR">Korean</option>
+                  <option value="fr-CA">French Canadian</option>
+                  <option value="hi-IN">Hindi</option>
+                  <option value="zh-CN">Chinese (Mandarin)</option>
+                  <option value="fil-PH">Filipino</option>
+                </select>
+              </div>
+              
+        
+
+            <h2>Choose Voice Gender</h2>
+            <select id="voiceGenderSelect">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Neutral">Neutral</option>
+            </select>
+
+            <h2>Choose Speaking Rate</h2>
+            <select id="speakingRateSelect">
+                <option value="Slow">Slow</option>
+                <option value="Medium">Medium</option>
+                <option value="Fast">Fast</option>
+            </select>
+
+            <button id="textToSpeechButton" disabled onclick="sendSummaryToSpeech()">Generate Speech</button>
+
+
+           
+        </div>
+    </div>
+
+    <script>
+        // Helper function to convert base64 to Blob
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mimeType });
+        }
+
+        function getSpeakingRate(rateOption) {
+            const rateMap = {
+                'Slow': 0.8,
+                'Medium': 1.0,
+                'Fast': 1.2
+            };
+            return rateMap[rateOption] || 1.0; // Default to 1.0 if not found
+        }
+
+        function getVoiceGender(genderOption) {
+            const genderMap = {
+                'Male': 1,
+                'Female': 2,
+                'Neutral': 0
+            };
+            return genderMap[genderOption] || 'SSML_VOICE_GENDER_NEUTRAL'; // Default to Neutral if not found
+        }
+
+        function sendSummaryToSpeech() {
+            const commentaryDiv = document.getElementById('commentaryDiv');
+            const commentaryText = commentaryDiv.textContent;
+            const voiceGender = getVoiceGender(document.getElementById('voiceGenderSelect').value);
+            const speakingRate = getSpeakingRate(document.getElementById('speakingRateSelect').value);            
+            const voiceLanguage = document.getElementById('voiceDropdown').value;
+            const statusMessagesDiv = document.getElementById('statusMessages');
+            const audioStatusDiv = document.getElementById('audioStatusDiv');
+            const audioPlayerDiv = document.getElementById('audioPlayer');
+
+            audioStatusDiv.innerHTML = '<p>Generating Audio ...</p>';
+            if (audioPlayerDiv) {
+                    audioPlayerDiv.classList.add('hidden');
+            }
+
+            fetch('/synthesize_speech', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: commentaryText, voiceGender: voiceGender, speakingRate: speakingRate, voiceLanguage: voiceLanguage })
+            }) 
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(audioBlob => {
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                // Get the audio element using querySelector
+                const audioPlayer = document.querySelector('#audioPlayer audio');
+                const audioSource = document.getElementById('audioSource');
+                
+                // Set the source and play the audio
+                audioSource.src = audioUrl;
+                audioPlayer.load(); // Ensure the audio is loaded
+                
+                // Show the audio player
+                
+                if (audioPlayerDiv) {
+                    audioPlayerDiv.classList.remove('hidden');
+                }
+                audioStatusDiv.innerHTML = "";
+            })
+            .catch(error => {
+                console.error('Error synthesizing speech:', error);
+                if (statusMessagesDiv) {
+                    statusMessagesDiv.innerHTML = '<p>An error occurred while generating speech.</p><p>' + error.message + '</p>';
+                }
+                audioStatusDiv.innerHTML = "";
+            });
+        }
+    </script>
+
+
+    <script>
+        const gameLinks = document.querySelectorAll('.game-list a');
+        const gameDetails = document.querySelector('.game-details');
+        const commentaryStyleSelect = document.getElementById('commentary-style-select');
+        const languageSelect = document.getElementById('language-select');
+        const generateButton = document.getElementById('generateCommentaryButton');
+        const commentaryDiv = document.getElementById('commentaryDiv');
+        const generatedImage = document.getElementById('generatedImage');
+        const generatedImageDescription = document.getElementById('imageDescription');
+        const audioPlayer = document.getElementById('audioPlayer'); 
+        const statusMessagesDiv = document.getElementById('statusMessages');
+
+        gameLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const gamePk = link.dataset.gamePk;
+
+                gameDetails.setAttribute('data-game-pk', gamePk);
+                generateButton.setAttribute('data-game-pk', gamePk);
+
+                gameDetails.innerHTML = '<p>Loading game details...</p>'; 
+
+                const selectedStyle = commentaryStyleSelect.value;
+                const selectedLanguage = languageSelect.value;
+
+                fetch(`/game/${gamePk}?style=${selectedStyle}&language=${selectedLanguage}`) 
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text(); 
+                    })
+                    .then(htmlContent => {
+                        // Inject game details HTML
+                        gameDetails.innerHTML = htmlContent; 
+
+                        //attach event handlers for innings
+                        const audioPlayByPlays = document.querySelectorAll('[id^="playbyplay_"]'); // Select i elements with id starting with "playbyplay_"
+
+                        audioPlayByPlays.forEach(iconElement => {
+                                const gamePk = iconElement.getAttribute('game_pk');
+                                const inningNum = iconElement.getAttribute('inning_num');
+                                iconElement.addEventListener('click', (event) => {
+                                    generatePlayByPlay(gamePk, inningNum);
+                                },{ once: true });
+                            });
+
+                        
+                        // Fetch image data after game details are loaded
+                        fetch(`/generate_game_image/${gamePk}`)
+                            .then(imageResponse => {
+                                if (!imageResponse.ok) {
+                                    throw new Error('Network response for image was not ok');
+                                }
+                                return imageResponse.json();
+                            })
+                            .then(imageData => {
+                                // Update image container with base64 image data
+                                const generatedImageContainer = document.getElementById('generatedImageContainer');
+                                if (generatedImageContainer) {
+                                    generatedImageContainer.innerHTML = `
+                                        <img id="generatedImage" height=200 width=300 src="data:image/png;base64,${imageData.imageData}" alt="Game Visualization">
+                                    `;
+                                }
+                            })
+                            .catch(imageError => {
+                                // Handle image generation errors
+                                const generatedImageContainer = document.getElementById('generatedImageContainer');
+                                if (generatedImageContainer) {
+                                    generatedImageContainer.innerHTML = `
+                                        <h2>Game Visualization</h2>
+                                        <p>Error generating image: ${imageError.message}</p>
+                                    `;
+                                }
+                            });
+                    })
+                    .catch(error => {
+                        gameDetails.innerHTML = `<p>Error loading game details: ${error.message}</p>`;
+                    });
+            });
+        });
+
+        generateButton.addEventListener('click', async () => {
+            const selectedStyle = commentaryStyleSelect.value;
+            const selectedLanguage = languageSelect.value;
+            const statusMessagesDiv = document.getElementById('statusMessages');
+            const gamePk = generateButton.getAttribute('data-game-pk');
+            const commentaryDiv = document.getElementById('commentaryDiv');
+
+            if (!gamePk) {
+                statusMessagesDiv.innerHTML = '<p>Please select a game first.</p>';
+                return;
+            }
+
+            
+            statusMessagesDiv.innerHTML = 'Generating commentary...';
+            commentaryDiv.innerHTML = 'Generating commentary...';
+
+            try {
+                const response = await fetch('/generate_commentary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        game_pk: gamePk,
+                        style: selectedStyle,
+                        language: selectedLanguage
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    commentaryDiv.innerHTML = `<p>${data.commentary}</p>`;
+                    statusMessagesDiv.innerHTML = ''; // Clear any previous messages
+                } else {
+                    const errorData = await response.json();
+                    statusMessagesDiv.innerHTML = `<p>Error: ${errorData.error}</p>`;
+                }
+            } catch (error) {
+                statusMessagesDiv.innerHTML = '<p>An error occurred while generating commentary.</p>';
+                console.error('Error generating commentary:', error);
+            }
+
+            // Enable the text-to-speech button after commentary generation
+            const textToSpeechButton = document.getElementById('textToSpeechButton'); 
+            if (textToSpeechButton) {
+                textToSpeechButton.disabled = false; 
+            }
+        });
+
+        // Add event listener to the text-to-speech button
+        const textToSpeechButton = document.getElementById('textToSpeechButton');
+        if (textToSpeechButton) {
+            textToSpeechButton.addEventListener('click', sendSummaryToSpeech);
+        }
+</script>
+<script>
+
+
+        function generatePlayByPlay(gamePk, inningNum) {
+            const iconElement = document.getElementById(`playbyplay_${inningNum}`);
+            // Get the audio element using querySelector
+            const audioSource = document.getElementById(`audioSource_${inningNum}`);
+            const statusMessagesDiv = document.getElementById('statusMessages');
+            const voiceGender = getVoiceGender(document.getElementById('voiceGenderSelect').value);
+            const speakingRate = getSpeakingRate(document.getElementById('speakingRateSelect').value);            
+            const voiceLanguage = document.getElementById('voiceDropdown').value;
+            
+            iconElement.className = 'fa fa-spinner fa-spin'; // Change to spinner icon
+            statusMessagesDiv.innerHTML = `<p>Generating play-by-play for inning ${inningNum}...</p>`;
+
+            fetch(`/generate_play_by_play/${gamePk}/${inningNum}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.commentary) {
+                        // Synthesize the commentary into speech
+                        return fetch('/synthesize_speech', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: data.commentary, voiceGender: voiceGender, speakingRate: speakingRate, voiceLanguage: voiceLanguage })
+                        });
+                    } else {
+                        iconElement.className = 'fa fa-replay'
+                        throw new Error('Failed to generate commentary.' + data.error);
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        const errData = response.json();
+                        iconElement.className = 'fa fa-replay'; // Revert icon
+                        throw new Error(`Speech synthesis failed with status ${response.status} ${errData.error || 'Unknown error'}`);
+                    }
+                    return response.blob(); // Get the raw binary blob from the response
+                })
+                .then(audioBlob => {
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    // Update the icon and attach the audio playback event
+                    iconElement.className = 'fa fa-play';
+
+                    // Set the source and play the audio
+                    audioSource.src = audioUrl;
+                    // Update the icon and attach the audio playback event
+                    iconElement.className = 'fa fa-play';
+
+                    // Set the source and play the audio
+                    audioSource.src = audioUrl;
+
+
+
+                    iconElement.addEventListener('click', function (e) {
+                        const inningNum = this.getAttribute('inning_num');
+                        // const audioPlayer = document.querySelector(`#audioPlayer_${inningNum} audio`);
+                        const audioPlayers = document.querySelectorAll('div[id^="audioPlayer_"]');
+                        audioPlayers.forEach(player => {
+                            player.classList.add('hidden');
+                        });
+                        const audioPlayer = document.querySelector(`#audioPlayer_${inningNum}`);
+                        audioPlayer.classList.remove('hidden');
+
+                    });
+
+
+                    // Use addEventListener instead of onclick
+                    iconElement.addEventListener('click', function (e) {
+                        const inningNum = this.getAttribute('inning_num');
+                        const audioPlayer = document.querySelector(`#audioPlayer_${inningNum} audio`);
+                        console.log(audioPlayer);
+                        console.log(`#audioPlayer_${inningNum} audio`)
+                        if (audioPlayer) {
+                            audioPlayer.load();
+                            audioPlayer.play(); 
+                        }
+                    });
+                    
+                    
+                    // Clear status message
+                    statusMessagesDiv.innerHTML = '<p>Audio ready for playback!</p>';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    iconElement.className = 'fa fa-replay'; // Revert icon
+                    statusMessagesDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+                });
+        }
+
+
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = Array.from(byteCharacters, char => char.charCodeAt(0));
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mimeType });
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Dev environment
+pip
+autopep8
+
+# App
+flask
+flask-restful
+google-cloud
+google-cloud-storage
+google-cloud-functions
+google-cloud-texttospeech
+google-cloud-aiplatform
+google-cloud-secret-manager
+Pillow
+gunicorn

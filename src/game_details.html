@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game Details</title>
+</head>
+<body>
+  <h1>Game Details</h1>
+  <div class="flex-container">
+    <div class="game-details">
+
+      <p><strong>Season:</strong> {{game_data.gameData.game.season}}</p>
+      <p><strong>Game:</strong> {{game_data.gameData.teams.home.record.gamesPlayed}} of {{ game_type_mapping.get(game_data.gameData.game.type, game_data.gameData.game.type) }}</p>
+      <p><strong>Away Team:</strong> {{ game_data.gameData.teams.away.teamName }} ({{ game_data.gameData.teams.away.record.leagueRecord.wins }}-{{ game_data.gameData.teams.away.record.leagueRecord.losses}}-{{ game_data.gameData.teams.away.record.leagueRecord.ties}})</p>
+      <p><strong>Home Team:</strong> {{ game_data.gameData.teams.home.teamName }} ({{ game_data.gameData.teams.home.record.leagueRecord.wins }}-{{ game_data.gameData.teams.home.record.leagueRecord.losses}}-{{ game_data.gameData.teams.home.record.leagueRecord.ties}})</p>
+      
+      <p><strong>Date:</strong> {{ game_data.gameData.datetime.officialDate }} {{ game_data.gameData.datetime.time }} {{ game_data.gameData.datetime.ampm }}</p>
+      <p><strong>Status:</strong> {{ game_data.gameData.status.abstractGameState }}</p>
+      </div>
+    <div  id="imageAndDescription">
+      <div id="generatedImageContainer">
+      </div>
+      <p>Imagen3 generated image of the {{game_data.gameData.venue.name}} </br>
+        with {{game_data.gameData.weather.condition}} conditions and time of day.</br>
+         Angle: From the announcers box
+      </p>
+    </div>
+
+  </div>
+      
+      
+    
+
+    <div class="linescore-container">
+      <h2>Linescore</h2>
+      <div class="linescore-header">
+        <div class="team-column">Team</div>
+        {% for i in range(1, 10) %}
+          <div>{{ i }}</div>
+        {% endfor %}
+        <div>R</div>
+      </div>
+      <div class="linescore-team">
+        <div class="team-column">{{ game_data.gameData.teams.away.teamName }}</div>
+        {% for inning in game_data.liveData.linescore.innings %}
+          <div>{{ inning.away.runs }}</div>
+        {% endfor %}
+        <div>{{ game_data.liveData.linescore.teams.away.runs }}</div>
+      </div>
+      <div class="linescore-team">
+        <div class="team-column">{{ game_data.gameData.teams.home.teamName }}</div>
+        {% for inning in game_data.liveData.linescore.innings %}
+          <div>{{ inning.home.runs }}</div>
+        {% endfor %}
+        <div>{{ game_data.liveData.linescore.teams.home.runs }}</div>
+      </div>
+      <div class="linescore-team">
+        <div class="team-column"></div>
+          {% for inning in game_data.liveData.linescore.innings %}
+          <div>
+            <i id="playbyplay_{{inning.num}}" class="fa fa-reply" game_pk="{{ game_data.gamePk }}"  inning_num="{{ inning.num }}"></i>  
+          </div>
+        {% endfor %}             
+      </div>
+      <div>
+        {% for inning in game_data.liveData.linescore.innings %}  
+        <div id="audioPlayer_{{inning.num}}" class="hidden">
+          <audio controls>
+            <source id="audioSource_{{inning.num}}" src="" type="audio/mpeg">
+          </audio>
+        </div>
+      {% endfor %}
+      </div>
+  </div>
+  <div id="commentaryDiv">
+  </div> 
+  <div id="audioStatusDiv"></div>
+  <div id="audioPlayer" class="hidden">
+    <audio controls>
+      <source id="audioSource" src="" type="audio/mpeg">
+    </audio>
+  </div>
+</body>
+</html>
